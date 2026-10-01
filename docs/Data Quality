@@ -1,0 +1,205 @@
+# Data Quality Assessment
+
+## 1. Objective
+
+The objective of the data-quality assessment is to evaluate the
+completeness, uniqueness, referential integrity and business-rule
+validity of the source data before creating the analytical layer.
+
+The assessment was performed on the PostgreSQL staging tables.
+
+---
+
+# 2. Data Quality Checks
+
+The following areas were evaluated:
+
+1. Missing values
+2. Duplicate records
+3. Foreign-key integrity
+4. Sales business rules
+5. Revenue calculation consistency
+
+---
+
+# 3. Missing Value Assessment
+
+## Customers
+
+The customer table was checked for missing values in:
+
+- customer_id
+- customer_name
+- city
+- customer_segment
+- join_date
+
+The SQL check is available in:
+
+`sql/02_data_quality/01_null_checks.sql`
+
+### Result
+
+All checked customer fields contained 0 NULL values.
+
+**Status: PASS**
+
+## Sales
+
+The sales table was checked for missing values in:
+
+- customer_id
+- order_date
+- store_id
+- product_id
+- quantity
+- unit_price
+- discount
+- revenue
+
+### Result
+
+All checked sales fields contained 0 NULL values.
+
+**Status: PASS**
+
+---
+
+# 4. Duplicate Assessment
+
+Duplicate checks were performed on:
+
+- customer_id
+- product_id
+- store_id
+- order_id
+
+The SQL implementation is available in:
+
+`sql/02_data_quality/02_duplicate_checks.sql`
+
+### Result
+
+No duplicate customer IDs were identified.
+
+No duplicate product IDs were identified.
+
+No duplicate store IDs were identified.
+
+No duplicate order IDs were identified.
+
+**Status: PASS**
+
+---
+
+# 5. Foreign-Key Integrity
+
+Referential integrity was checked between:
+
+- Sales → Customers
+- Sales → Products
+- Sales → Stores
+- Calls → Customers
+
+The SQL implementation is available in:
+
+`sql/02_data_quality/03_foreign_key_integrity.sql`
+
+### Result
+
+No orphan customer references were identified in sales.
+
+No orphan product references were identified in sales.
+
+No orphan store references were identified in sales.
+
+No orphan customer references were identified in call logs.
+
+**Status: PASS**
+
+---
+
+# 6. Sales Business Rules
+
+The sales data was checked for:
+
+- Quantity <= 0
+- Negative unit prices
+- Discounts outside the 0–1 range
+- Negative revenue
+
+The SQL implementation is available in:
+
+`sql/02_data_quality/04_sales_business_rules.sql`
+
+### Result
+
+No invalid quantities were identified.
+
+No negative unit prices were identified.
+
+No invalid discount values were identified.
+
+No negative revenue values were identified.
+
+**Status: PASS**
+
+---
+
+# 7. Revenue Validation
+
+Revenue was independently validated against the expected formula:
+
+Revenue = Quantity × Unit Price × (1 − Discount)
+
+The SQL implementation is available in:
+
+`sql/02_data_quality/05_revenue_validation.sql`
+
+The validation query identifies records where the difference between
+stored revenue and calculated revenue exceeds 0.01.
+
+### Result
+
+0 records failed the revenue reconciliation check.
+
+**Status: PASS**
+
+---
+
+# 8. Overall Findings
+
+The initial assessment of the tested fields and relationships found
+no issues in the five assessed quality categories.
+
+The core sales data passed:
+
+- NULL checks
+- Duplicate checks
+- Foreign-key integrity checks
+- Sales business-rule checks
+- Revenue reconciliation
+
+However, this assessment does not imply that the entire dataset is
+free of quality issues. Additional validation will be performed on
+the remaining dimensions and customer-service datasets.
+
+---
+
+# 9. Next Step
+
+The next stage is to complete the remaining data-quality assessment
+and then create the cleaned analytical layer.
+
+The planned workflow is:
+
+Staging Data
+→ Data Quality Assessment
+→ Data Cleaning
+→ Analytical Data Model
+→ Customer 360
+→ RFM
+→ Cohort Analysis
+→ CLV
+→ Churn Prediction
+→ Power BI
